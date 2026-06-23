@@ -4,10 +4,13 @@ dotenv.config();
 
 import connectDB from "./db.js";
 import UserRouter from "./routes/user.route.js";
+import FoodRouter from "./routes/food.route.js";
 const app = express();
 app.use(express.json());
 
 app.use('/api/auth',UserRouter);
+app.use('/api/auth',FoodRouter);
+
 
 
 connectDB();

@@ -1,5 +1,6 @@
 import UserModel from "../model/user.model.js";
 import bcrypt from "bcryptjs";
+import genToken from "../Util/Token.js";
 
 export const registerUser = async (req, res) => {
   try {
@@ -40,6 +41,61 @@ export const registerUser = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: error.message || error,
+    });
+  }
+};
+
+
+export const LoginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "User Not Found",
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Invalid Username or Password",
+      });
+    }
+
+    const token = await genToken(user._id);
+
+    res.cookie("userToken", token, {
+      sucure: false,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+    });
+
+    return res.status(201).json({
+      message: "User Login Successfully",
+      user,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message || error,
+    });
+  }
+};
+
+
+export const LogoutUser = async (req, res) => {
+  try {
+    res.clearCookie("userToken");
+    return res.status(200).json({
+      messsge: "User Logout Successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "LogOut Error",
     });
   }
 };
